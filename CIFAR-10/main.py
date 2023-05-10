@@ -147,7 +147,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--classes', default=None, type=str)
     args = parser.parse_args()
-    device = get_device(idx=args.device)
     if args.classes != None:
         args.classes = args.classes.split(",") # comma-sep
 
