@@ -32,8 +32,8 @@ print('Using device:', device)
 
 
 def SSL_loop(args, encoder = None):
-    os.makedirs(args.path_dir, exist_ok=True)
-    file_to_update = open(os.path.join(args.path_dir, 'train_and_eval.log'), 'w')
+    os.makedirs('saved_experiments/' + args.path_dir, exist_ok=True)
+    file_to_update = open(os.path.join('saved_experiments/' + args.path_dir, 'train_and_eval.log'), 'w')
 
     train_loader = torch.utils.data.DataLoader(
         dataset=datasets.dataset_class_mapper(torchvision.datasets.CIFAR10(
@@ -51,7 +51,7 @@ def SSL_loop(args, encoder = None):
     main_branch.to(device)
     backbone = main_branch.encoder
     projector = main_branch.projector
-    torch.save(dict(epoch=0, state_dict=main_branch.state_dict()), os.path.join(args.path_dir, '0.pth'))
+    torch.save(dict(epoch=0, state_dict=main_branch.state_dict()), os.path.join('saved_experiments/' + args.path_dir, '0.pth'))
 
     optimizer = torch.optim.SGD(main_branch.parameters(), momentum=0.9, lr=args.lr * args.bsz / 256, weight_decay=args.wd)
     scaler = GradScaler()
@@ -116,7 +116,7 @@ def SSL_loop(args, encoder = None):
 
         if e % args.save_every == 0:
             torch.save(dict(epoch=e, state_dict=main_branch.state_dict()),
-                       os.path.join(args.path_dir, f'{e}.pth'))
+                       os.path.join('saved_experiments/' + args.path_dir, f'{e}.pth'))
 
     return main_branch.encoder, file_to_update
 
@@ -132,7 +132,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', default=42, type=int)
-    parser.add_argument('--epochs', default=10, type=int)
+    parser.add_argument('--epochs', default=100, type=int)
     parser.add_argument('--warmup_epochs', default=10, type=int)
     
     parser.add_argument('--lr', default=0.03, type=float)
@@ -141,10 +141,11 @@ if __name__ == '__main__':
 
 
     parser.add_argument('--lmbd', default=0.0, type=float)
-    parser.add_argument('--dim_proj', default='2048,2048', type=str)
+    parser.add_argument('--dim_proj', default='2048,3', type=str)
     parser.add_argument('--dim_pred', default=512, type=int)
     parser.add_argument('--loss', default='simclr', type=str, choices=['simclr', 'simsiam'])
-    parser.add_argument('--path_dir', default='experiment', type=str)
+    parser.add_argument('--path_dir', default='sample', type=str)
+    parser.add_argument('--save_every', default=5, type=int)
 
     
     parser.add_argument('--num_workers', default=8, type=int)
