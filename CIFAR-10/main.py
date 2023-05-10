@@ -81,12 +81,6 @@ def SSL_loop(args, encoder = None):
 
                 loss = losses.info_nce_loss(z1, z2, device=device) / 2 + losses.info_nce_loss(z2, z1, device=device) / 2
 
-                if args.lmbd > 0:
-                    rotated_images, rotated_labels = datasets.rotate_images(inputs[2])
-                    b = backbone(rotated_images)
-                    logits = main_branch.predictor2(b)
-                    rot_loss = F.cross_entropy(logits, rotated_labels)
-                    loss += args.lmbd * rot_loss
 
                 return loss
 
@@ -140,7 +134,6 @@ if __name__ == '__main__':
     parser.add_argument('--wd', default=0.0005, type=float)
 
 
-    parser.add_argument('--lmbd', default=0.0, type=float)
     parser.add_argument('--dim_proj', default='2048,3', type=str)
     parser.add_argument('--dim_pred', default=512, type=int)
     parser.add_argument('--loss', default='simclr', type=str, choices=['simclr', 'simsiam'])
@@ -154,5 +147,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--classes', default=None, type=str)
     args = parser.parse_args()
+    device = get_device(idx=args.device)
+    if args.classes != None:
+        args.classes = args.classes.split(",") # comma-sep
 
     main(args)

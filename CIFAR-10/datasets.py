@@ -38,6 +38,8 @@ class RestrictedClassDataset(torchvision.datasets.VisionDataset):
         for target in classes:
             self.targets[target_copy == target] = torch.tensor(classes.index(target))
 
+        print('dataset size', len(self.data), len(self.targets))
+
     def __getitem__(self, index):
         img, target = self.data[index], self.targets[index]
 
