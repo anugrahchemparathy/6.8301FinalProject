@@ -34,6 +34,7 @@ print('Using device:', device)
 
 def SSL_loop(args, encoder = None):
     os.makedirs('saved_experiments/' + args.path_dir, exist_ok=True)
+    os.makedirs('saved_plots/' + args.path_dir, exist_ok=True)
     file_to_update = open(os.path.join('saved_experiments/' + args.path_dir, 'train_and_eval.log'), 'w')
 
     train_loader = torch.utils.data.DataLoader(
