@@ -15,6 +15,7 @@ import time
 import copy
 import argparse
 
+import matplotlib.pyplot as plt
 
 from device_tools import get_device, t2np
 import datasets
@@ -55,6 +56,8 @@ def SSL_loop(args, encoder = None):
 
     optimizer = torch.optim.SGD(main_branch.parameters(), momentum=0.9, lr=args.lr * args.bsz / 256, weight_decay=args.wd)
     scaler = GradScaler()
+    
+    losses = []
 
     start = time.time()
     for e in range(1, args.epochs + 1):
@@ -98,6 +101,8 @@ def SSL_loop(args, encoder = None):
 
                 optimizer.step()
 
+        losses.append(loss.item())
+
         line_to_print = (
             f'epoch: {e} | '
             f'loss: {loss.item():.3f} | lr: {lr:.6f} | '
@@ -111,6 +116,12 @@ def SSL_loop(args, encoder = None):
         if e % args.save_every == 0:
             torch.save(dict(epoch=e, state_dict=main_branch.state_dict()),
                        os.path.join('saved_experiments/' + args.path_dir, f'{e}.pth'))
+
+    losses = np.array(losses)
+    np.save(os.path.join('saved_plots/' + args.path_dir, 'loss.npy'), losses)
+
+    plt.plot(np.arange(len(losses)), losses)
+    plt.savefig(os.path.join('saved_plots/' + args.path_dir, 'loss_plot.png'))
 
     return main_branch.encoder, file_to_update
 
