@@ -2,6 +2,7 @@ import torch.nn.functional as F
 import torch
 import random
 import numpy as np
+import math
 
 
 def fix_seed(seed):
@@ -11,6 +12,21 @@ def fix_seed(seed):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+def adjust_learning_rate(epochs, warmup_epochs, base_lr, optimizer, loader, step):
+    max_steps = epochs * len(loader)
+    warmup_steps = warmup_epochs * len(loader)
+    if step < warmup_steps:
+        lr = base_lr * step / warmup_steps
+    else:
+        step -= warmup_steps
+        max_steps -= warmup_steps
+        q = 0.5 * (1 + math.cos(math.pi * step / max_steps))
+        end_lr = 0
+        lr = base_lr * q + end_lr * (1 - q)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+    return lr
 
 
 # modified from
@@ -68,3 +84,4 @@ def knn_predict(feature, feature_bank, feature_labels, classes, knn_k, knn_t):
 
     pred_labels = pred_scores.argsort(dim=-1, descending=True)
     return pred_labels
+

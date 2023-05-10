@@ -94,3 +94,25 @@ class ContrastiveLearningTransform:
     def __call__(self, x):
         out = [single_transform(self.transform(x)), single_transform(self.transform(x))]
         return out
+
+
+def rotate_images(images):
+    nimages = images.shape[0]
+    n_rot_images = 4 * nimages
+
+    # rotate images all 4 ways at once
+    rotated_images = torch.zeros([n_rot_images, images.shape[1], images.shape[2], images.shape[3]]).cuda()
+    rot_classes = torch.zeros([n_rot_images]).long().cuda()
+
+    rotated_images[:nimages] = images
+    # rotate 90
+    rotated_images[nimages:2 * nimages] = images.flip(3).transpose(2, 3)
+    rot_classes[nimages:2 * nimages] = 1
+    # rotate 180
+    rotated_images[2 * nimages:3 * nimages] = images.flip(3).flip(2)
+    rot_classes[2 * nimages:3 * nimages] = 2
+    # rotate 270
+    rotated_images[3 * nimages:4 * nimages] = images.transpose(2, 3).flip(3)
+    rot_classes[3 * nimages:4 * nimages] = 3
+
+    return rotated_images, rot_classes
