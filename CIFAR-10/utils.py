@@ -28,6 +28,14 @@ def adjust_learning_rate(epochs, warmup_epochs, base_lr, optimizer, loader, step
         param_group['lr'] = lr
     return lr
 
+def knn_loop(encoder, train_loader, test_loader, device):
+    accuracy = knn_monitor(net=encoder,
+                           memory_data_loader=train_loader,
+                           test_data_loader=test_loader,
+                           k=200 if device != torch.device('mps') else 16, # mps needs a small k
+                           device=device,
+                           hide_progress=True)
+    return accuracy
 
 # modified from
 # https://colab.research.google.com/github/facebookresearch/moco/blob/colab-notebook/colab/moco_cifar10_demo.\

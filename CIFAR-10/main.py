@@ -24,7 +24,8 @@ import models
 import utils
 # from utils import knn_monitor, fix_seed
 
-
+normalize = T.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])
+single_transform = T.Compose([T.ToTensor(), normalize])
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # device = get_device()
@@ -47,6 +48,26 @@ def SSL_loop(args, encoder = None):
         drop_last=True
     )
 
+    # to calculate KNN accuracy
+
+    memory_loader = torch.utils.data.DataLoader(
+        dataset=datasets.dataset_class_mapper(torchvision.datasets.CIFAR10(
+            '../data', train=True, transform=single_transform, download=True
+        ), args.classes),
+        shuffle=False,
+        batch_size=args.bsz,
+        pin_memory=True,
+        num_workers=args.num_workers,
+    )
+    test_loader = torch.utils.data.DataLoader(
+        dataset=datasets.dataset_class_mapper(torchvision.datasets.CIFAR10(
+            '../data', train=False, transform=single_transform, download=True,
+        ), args.classes),
+        shuffle=False,
+        batch_size=args.bsz,
+        pin_memory=True,
+        num_workers=args.num_workers
+    )
 
     main_branch = models.Branch(args, encoder=encoder)
     main_branch.to(device)
@@ -58,6 +79,7 @@ def SSL_loop(args, encoder = None):
     scaler = GradScaler()
     
     loss_list = []
+    acc_list = []
 
     start = time.time()
     for e in range(1, args.epochs + 1):
@@ -103,8 +125,16 @@ def SSL_loop(args, encoder = None):
 
         loss_list.append(loss.item())
 
+        if args.fp16:
+            with autocast():
+                knn_acc = utils.knn_loop(backbone, memory_loader, test_loader, device)
+        else:
+            knn_acc = utils.knn_loop(backbone, memory_loader, test_loader, device)
+
+        acc_list.append(knn_acc)
+
         line_to_print = (
-            f'epoch: {e} | '
+            f'epoch: {e} | knn_acc: {knn_acc:.3f} | '
             f'loss: {loss.item():.3f} | lr: {lr:.6f} | '
             f'time_elapsed: {time.time() - start:.3f}'
         )
@@ -118,10 +148,15 @@ def SSL_loop(args, encoder = None):
                        os.path.join('saved_experiments/' + args.path_dir, f'{e}.pth'))
 
     loss_np = np.array(loss_list)
+    acc_np = np.array(acc_list)
     np.save(os.path.join('saved_plots/' + args.path_dir, 'loss.npy'), loss_np)
+    np.save(os.path.join('saved_plots/' + args.path_dir, 'acc.npy'), acc_np)
 
     plt.plot(np.arange(len(loss_np)), loss_np)
     plt.savefig(os.path.join('saved_plots/' + args.path_dir, 'loss_plot.png'))
+    plt.clf()
+    plt.plot(np.arange(len(acc_np)), acc_np)
+    plt.savefig(os.path.join('saved_plots/' + args.path_dir, 'knn_acc_plot.png'))
 
     return main_branch.encoder, file_to_update
 
