@@ -31,7 +31,6 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('Using device:', device)
 
 
-
 def SSL_loop(args, encoder = None):
     os.makedirs('saved_experiments/' + args.path_dir, exist_ok=True)
     os.makedirs('saved_plots/' + args.path_dir, exist_ok=True)
