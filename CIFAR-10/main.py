@@ -58,7 +58,7 @@ def SSL_loop(args, encoder = None):
     optimizer = torch.optim.SGD(main_branch.parameters(), momentum=0.9, lr=args.lr * args.bsz / 256, weight_decay=args.wd)
     scaler = GradScaler()
     
-    losses = []
+    loss_list = []
 
     start = time.time()
     for e in range(1, args.epochs + 1):
@@ -102,7 +102,7 @@ def SSL_loop(args, encoder = None):
 
                 optimizer.step()
 
-        losses.append(loss.item())
+        loss_list.append(loss.item())
 
         line_to_print = (
             f'epoch: {e} | '
@@ -118,10 +118,10 @@ def SSL_loop(args, encoder = None):
             torch.save(dict(epoch=e, state_dict=main_branch.state_dict()),
                        os.path.join('saved_experiments/' + args.path_dir, f'{e}.pth'))
 
-    losses = np.array(losses)
-    np.save(os.path.join('saved_plots/' + args.path_dir, 'loss.npy'), losses)
+    loss_np = np.array(loss_list)
+    np.save(os.path.join('saved_plots/' + args.path_dir, 'loss.npy'), loss_np)
 
-    plt.plot(np.arange(len(losses)), losses)
+    plt.plot(np.arange(len(loss_np)), loss_np)
     plt.savefig(os.path.join('saved_plots/' + args.path_dir, 'loss_plot.png'))
 
     return main_branch.encoder, file_to_update
