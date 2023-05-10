@@ -75,6 +75,8 @@ def SSL_loop(args, encoder = None):
     projector = main_branch.projector
     torch.save(dict(epoch=0, state_dict=main_branch.state_dict()), os.path.join('saved_experiments/' + args.path_dir, '0.pth'))
 
+    loss_inst = losses.SupConLoss(device, temperature = args.temperature, base_temperature = args.temperature)
+
     optimizer = torch.optim.SGD(main_branch.parameters(), momentum=0.9, lr=args.lr * args.bsz / 256, weight_decay=args.wd)
     scaler = GradScaler()
     
@@ -104,7 +106,9 @@ def SSL_loop(args, encoder = None):
                 z1 = projector(b1)
                 z2 = projector(b2)
 
-                loss = losses.info_nce_loss(z1, z2, device=device) / 2 + losses.info_nce_loss(z2, z1, device=device) / 2
+                z = torch.stack((z1, z2), axis = 1)
+                loss = loss_inst(z, labels = y, thresh = args.threshold)
+                # loss = losses.info_nce_loss(z1, z2, device=device) / 2 + losses.info_nce_loss(z2, z1, device=device) / 2
 
 
                 return loss
@@ -189,6 +193,9 @@ if __name__ == '__main__':
     
     parser.add_argument('--num_workers', default=8, type=int)
     parser.add_argument('--fp16', action='store_true')
+    parser.add_argument('--temperature', default=0.5, type=float)
+
+    parser.add_argument('--threshold', default = 0.0, type = float) # default unsupervised
 
 
     parser.add_argument('--classes', default=None, type=str)
