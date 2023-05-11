@@ -1,7 +1,8 @@
-from ldcl_plot import VisPlot
-from ldcl_embed import embed
-from ldcl_color import get_cmap
+from ldcl.plot.plot import VisPlot
+from ldcl.plot.embed import embed
+from ldcl.plot.color import get_cmap
 
+from ldcl.data.physics import get_dataset
 from ldcl.tools.device import get_device
 
 from sklearn.decomposition import PCA
@@ -131,18 +132,21 @@ unnormalize = T.Normalize([-2.43, -2.42, -2.22], [4.94, 5.01, 4.98])
 single_transform = T.Compose([T.ToTensor(), normalize])
 
 def cifar_reverse_map(i):
-    return {
-        0: "airplane",
-        1: "automobile",
-        2: "bird",
-        3: "cat",
-        4: "deer",
-        5: "dog",
-        6: "frog",
-        7: "horse",
-        8: "ship",
-        9: "truck",
-    }[i]
+    if args.cifar100:
+        return ["apple", "aquarium_fish", "baby", "bear", "beaver", "bed", "bee", "beetle", "bicycle", "bottle", "bowl", "boy", "bridge", "bus", "butterfly", "camel", "can", "castle", "caterpillar", "cattle", "chair", "chimpanzee", "clock", "cloud", "cockroach", "couch", "crab", "crocodile", "cup", "dinosaur", "dolphin", "elephant", "flatfish", "forest", "fox", "girl", "hamster", "house", "kangaroo", "keyboard", "lamp", "lawn_mower", "leopard", "lion", "lizard", "lobster", "man", "maple_tree", "motorcycle", "mountain", "mouse", "mushroom", "oak_tree", "orange", "orchid", "otter", "palm_tree", "pear", "pickup_truck", "pine_tree", "plain", "plate", "poppy", "porcupine", "possum", "rabbit", "raccoon", "ray", "road", "rocket", "rose", "sea", "seal", "shark", "shrew", "skunk", "skyscraper", "snail", "snake", "spider", "squirrel", "streetcar", "sunflower", "sweet_pepper", "table", "tank", "telephone", "television", "tiger", "tractor", "train", "trout", "tulip", "turtle", "wardrobe", "whale", "willow_tree", "wolf", "woman", "worm"][i]
+    else:
+        return {
+            0: "airplane",
+            1: "automobile",
+            2: "bird",
+            3: "cat",
+            4: "deer",
+            5: "dog",
+            6: "frog",
+            7: "horse",
+            8: "ship",
+            9: "truck",
+        }[i]
 
 def find_nth(haystack, needle, n):
     start = haystack.find(needle)
@@ -164,8 +168,9 @@ def to_image(imgs):
     return imgs
 
 def main_plot(args):
+    dataset_obj = torchvision.datasets.CIFAR10 if not args.cifar100 else torchvision.datasets.CIFAR100
     test_loader = torch.utils.data.DataLoader(
-        dataset=dataset_class_mapper(torchvision.datasets.CIFAR10(
+        dataset=dataset_class_mapper(torchvision.datasets.CIFAR100(
             '../data', train=not args.test, transform=single_transform, download=True,
         ), args.classes),
         shuffle=False,
@@ -207,18 +212,28 @@ def main_plot(args):
 
     if args.normalize:
         embeds = embeds / np.sqrt(np.sum(np.square(embeds), axis=1))[:, np.newaxis]
-        means = []
-        for i in range(10):
-            means.append(np.mean(embeds[vals["targets"] == i], axis=0))
-        means = np.array(means)
-        print(means)
+        # means = []
+        # for i in range(10):
+        #     means.append(np.mean(embeds[vals["targets"] == i], axis=0))
+        # means = np.array(means)
+        # print(means)
 
     """
-    mask = np.equal(vals["targets"], 2)
+    mask = np.logical_and(np.logical_and(np.greater_equal(embeds[:, 0], -0.3), np.greater_equal(embeds[:, 1], -0.3)), np.logical_and(np.greater_equal(embeds[:, 2], -0.2), np.less_equal(embeds[:, 2], 0.6)))
     class_embeds = embeds[mask]
     class_vals = {}
     for key in vals:
         class_vals[key] = vals[key][mask]
+    embeds = embeds[mask]
+    for key in vals:
+        if key == "nl_targets":
+            ww = []
+            for i in range(len(mask)):
+                if mask[i]:
+                    ww += vals[key][i]
+            vals[key] = ww
+        else:
+            vals[key] = vals[key][mask]
     """
 
     """
@@ -266,6 +281,7 @@ if __name__ == '__main__':
     parser.add_argument('--loss', default="simclr", type=str)
     parser.add_argument('--classes', default=None, type=str)
     parser.add_argument('--normalize', action='store_true')
+    parser.add_argument('--cifar100', action='store_true')
 
     args = parser.parse_args()
     main_plot(args)
