@@ -66,8 +66,6 @@ class RestrictedClassDataset(torchvision.datasets.VisionDataset):
         return len(self.data)
 
 def dataset_class_mapper(dataset, classes):
-    if classes != None:
-        classes = classes.split(",")
     return RestrictedClassDataset(dataset, classes=classes, class_map={
         'airplane': 0,
         'automobile': 1,
@@ -169,6 +167,7 @@ def to_image(imgs):
 
 def main_plot(args):
     dataset_obj = torchvision.datasets.CIFAR10 if not args.cifar100 else torchvision.datasets.CIFAR100
+    # print(args.classes)
     test_loader = torch.utils.data.DataLoader(
         dataset=dataset_class_mapper(torchvision.datasets.CIFAR100(
             '../data', train=not args.test, transform=single_transform, download=True,
@@ -180,6 +179,11 @@ def main_plot(args):
     )
     branch = Branch(args)
     state_dict = torch.load(os.path.join(args.path_dir, f"{args.id}.pth"), map_location=device)["state_dict"]
+
+    if args.classes is not None:
+        inverse_map = lambda i: args.classes[i]
+    else:
+        inverse_map = cifar_reverse_map
 
     branch.load_state_dict(state_dict)
     branch.to(device)
@@ -204,7 +208,7 @@ def main_plot(args):
     targets = np.array(targets)
     vals = {
         "targets": targets,
-        "nl_targets": list(map(cifar_reverse_map, targets)),
+        "nl_targets": list(map(inverse_map, targets)),
         "ids": list(range(len(targets))),
     }
     if args.preview:
@@ -284,4 +288,6 @@ if __name__ == '__main__':
     parser.add_argument('--cifar100', action='store_true')
 
     args = parser.parse_args()
+    if args.classes != None:
+        args.classes = args.classes.split(",") # comma-sep
     main_plot(args)

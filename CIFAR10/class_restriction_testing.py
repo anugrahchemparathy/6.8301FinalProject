@@ -26,6 +26,9 @@ import utils
 import matplotlib.pyplot as plt
 import numpy as np
 
+normalize = T.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])
+single_transform = T.Compose([T.ToTensor(), normalize])
+
 classes = ('airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 
@@ -38,7 +41,7 @@ def imshow(img):
 def main(args):
     train_loader = torch.utils.data.DataLoader(
         dataset=datasets.dataset_class_mapper(torchvision.datasets.CIFAR10(
-            '../data', train=True, transform=datasets.ContrastiveLearningTransform(), download=True
+            '../data', train=True, transform=single_transform, download=True
         ), args.classes),
         shuffle=True,
         batch_size=16,
@@ -46,14 +49,17 @@ def main(args):
         num_workers=args.num_workers,
         drop_last=True
     )
+    
+    print(args.classes)
 
     dataiter = iter(train_loader)
     images, labels = next(dataiter) # [nparr[16, 3, 32, 32], nparr[16, 3, 32, 32]]
 
-    # show images
-    imshow(torchvision.utils.make_grid(images[0]))
     # print labels
-    print(' '.join(f'{classes[labels[j]]:5s}' for j in range(16)))
+    print(' '.join(f'{args.classes[labels[j]]:5s}' for j in range(16)))
+    print(' '.join(f'{labels[j]}' for j in range(16)))
+    # show images
+    imshow(torchvision.utils.make_grid(images))
 
 
 if __name__ == '__main__':
