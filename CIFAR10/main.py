@@ -175,6 +175,8 @@ def SSL_loop(args, encoder = None):
 
     legend = []
     for k, v in metrics_dict.items():
+        if k == 'knn_acc':
+            continue
         plt.plot(range(len(v)), v)
         legend.append(k)
     
@@ -187,9 +189,11 @@ def SSL_loop(args, encoder = None):
     plt.ylabel('Loss')
     plt.xlabel('Epochs')
     plt.savefig(os.path.join('saved_experiments/' + args.path_dir, 'loss_plot.png'))
+    plt.clf()
     
-    # plt.plot(np.arange(len(acc_np)), acc_np)
-    # plt.savefig(os.path.join('saved_experiments/' + args.path_dir, 'knn_acc_plot.png'))
+    plt.plot(np.arange(len(metrics_dict['knn_acc'])), metrics_dict['knn_acc'])
+    plt.savefig(os.path.join('saved_experiments/' + args.path_dir, 'knn_acc_plot.png'))
+    plt.clf()
 
     return main_branch.encoder, file_to_update
 
