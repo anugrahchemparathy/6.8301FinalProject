@@ -29,16 +29,16 @@ class MetricEngine:
     def get_metrics(self):
         metrics = {}
         embeddings = []
-        labels = []
+        labels_list = []
         for batch_idx, (data, labels) in enumerate(self.test_loader):
             data, labels_batch = data.to(self.device), labels.to(self.device)
             embeddings_batch = self.model(data)
 
             embeddings.append(embeddings_batch)
-            labels.append(labels_batch)
+            labels_list.append(labels_batch)
 
         embeddings = torch.cat(embeddings, dim=0)
-        labels = torch.cat(labels, dim=0)
+        labels = torch.cat(labels_list, dim=0)
         metrics = self.compute_metrics(embeddings, labels)
         return metrics
 
