@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from resnet import resnet18
+from resnets import resnet18
 
 
 

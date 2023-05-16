@@ -22,7 +22,7 @@ from tqdm import tqdm
 import os
 import copy
 
-from resnet import resnet18
+from .resnet import resnet18
 
 class RestrictedClassDataset(torchvision.datasets.VisionDataset):
     def __init__(self, dataset, classes=None, class_map=None):
@@ -263,7 +263,7 @@ def main_plot(args):
 
     def cmap_one():
         plot = VisPlot(3)
-        plot.add_with_cmap(embeds, vals, cmap="tab10", cby="targets", size=3, outline=False)
+        plot.add_with_cmap(embeds, vals, cmap="viridis", cby="targets", size=3, outline=False)
         #plot.add_with_cmap(class_embeds, class_vals, cmap="tab10", cby="targets", size=3, outline=True)
 
         return plot

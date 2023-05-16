@@ -14,10 +14,10 @@ from pseudoR2 import *
 
 
 class MetricEngine:
-    def __init__(self, test_loader, model, device, use_r2 = True, use_pca = True):
+    def __init__(self, test_loader, model, device, use_r2 = True, use_pca = True, variance_threshold = 0.90):
         self.lr = LogisticRegression(fit_intercept=False, solver='lbfgs')
         self.pca = PCA(n_components=3)
-        self.variance_threshold = 0.8
+        self.variance_threshold = variance_threshold
 
         self.use_r2 = use_r2
         self.use_pca = use_pca
