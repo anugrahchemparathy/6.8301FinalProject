@@ -22,6 +22,7 @@ import datasets
 import losses
 import models
 import utils
+import metrics
 # from utils import knn_monitor, fix_seed
 
 normalize = T.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])
@@ -74,6 +75,9 @@ def SSL_loop(args, encoder = None):
     backbone = main_branch.encoder
     projector = main_branch.projector
     torch.save(dict(epoch=0, state_dict=main_branch.state_dict()), os.path.join('saved_experiments/' + args.path_dir, '0.pth'))
+
+    metric_engine = metrics.MetricEngine(test_loader=test_loader, model=main_branch, device=device)
+
 
     loss_inst = losses.SupConLoss(device, temperature = args.temperature, base_temperature = args.temperature)
 
@@ -128,6 +132,7 @@ def SSL_loop(args, encoder = None):
                 optimizer.step()
 
         loss_list.append(loss.item())
+        metrics = metric_engine.get_metrics()
 
         if args.fp16:
             with autocast():

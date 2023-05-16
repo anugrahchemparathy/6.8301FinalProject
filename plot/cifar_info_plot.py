@@ -78,6 +78,8 @@ def dataset_class_mapper(dataset, classes):
         'ship': 8,
         'truck': 9
     }) # cifar map
+
+
 class ProjectionMLP(torch.nn.Module):
     def __init__(self, in_dim, hidden_dim, out_dim):
         super().__init__()
