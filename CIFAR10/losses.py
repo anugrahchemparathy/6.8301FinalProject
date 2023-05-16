@@ -27,6 +27,8 @@ def rmseNCE(z1, z2, temperature=0.1, device = 'cpu'):
     loss = torch.nn.functional.cross_entropy(logits, labels)
     return loss
 
+
+
 class SupConLoss(nn.Module):
     """Supervised Contrastive Learning: https://arxiv.org/pdf/2004.11362.pdf.
     It also supports the unsupervised contrastive loss in SimCLR"""

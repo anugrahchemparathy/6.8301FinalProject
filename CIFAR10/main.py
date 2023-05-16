@@ -42,7 +42,7 @@ def SSL_loop(args, encoder = None):
 
     train_loader = torch.utils.data.DataLoader(
         dataset=datasets.dataset_class_mapper(torchvision.datasets.CIFAR10(
-            '../data', train=True, transform=datasets.ContrastiveLearningTransform(), download=True
+            '../data', train=True, transform=datasets.ContrastiveLearningTransform() if args.augment else datasets.SingleTransform(), download=True
         ), args.classes),
         shuffle=True,
         batch_size=args.bsz,
@@ -113,6 +113,8 @@ def SSL_loop(args, encoder = None):
                 z2 = projector(b2)
 
                 z = torch.stack((z1, z2), axis = 1)
+                if not args.augment:
+                    z = z[:, :1]
                 loss = loss_inst(z, labels = y, thresh = args.threshold)
                 # loss = losses.info_nce_loss(z1, z2, device=device) / 2 + losses.info_nce_loss(z2, z1, device=device) / 2
 
@@ -230,6 +232,7 @@ if __name__ == '__main__':
     
     parser.add_argument('--num_workers', default=8, type=int)
     parser.add_argument('--fp16', action='store_true')
+    parser.add_argument('--augment', action='store_false')
     parser.add_argument('--temperature', default=0.5, type=float)
 
     parser.add_argument('--threshold', default = 0.0, type = float) # default unsupervised
