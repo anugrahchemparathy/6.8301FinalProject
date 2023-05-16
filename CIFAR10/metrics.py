@@ -63,6 +63,6 @@ class MetricEngine:
             cumulative_explained_variance_ratio = np.cumsum(explained_variance_ratio)
             num_components = np.sum(cumulative_explained_variance_ratio < self.variance_threshold) + 1
 
-            metrics['pca_dimensionality'] = num_components
+            metrics['pca_dim'] = num_components
 
         return metrics
