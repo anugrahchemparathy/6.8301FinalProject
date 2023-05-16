@@ -174,7 +174,7 @@ def SSL_loop(args, encoder = None):
         file.close()
 
     legend = []
-    for k, v in metrics_dict:
+    for k, v in metrics_dict.items():
         plt.plot(range(len(v)), v)
         legend.append(k)
     
