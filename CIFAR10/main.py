@@ -35,7 +35,7 @@ print('Using device:', device)
 
 def SSL_loop(args, encoder = None):
     os.makedirs('saved_experiments/' + args.path_dir, exist_ok=True)
-    os.makedirs('saved_plots/' + args.path_dir, exist_ok=True)
+    # os.makedirs('saved_plots/' + args.path_dir, exist_ok=True)
     file_to_update = open(os.path.join('saved_experiments/' + args.path_dir, 'train_and_eval.log'), 'w')
 
     train_loader = torch.utils.data.DataLoader(
@@ -158,14 +158,14 @@ def SSL_loop(args, encoder = None):
 
     loss_np = np.array(loss_list)
     acc_np = np.array(acc_list)
-    np.save(os.path.join('saved_plots/' + args.path_dir, 'loss.npy'), loss_np)
-    np.save(os.path.join('saved_plots/' + args.path_dir, 'acc.npy'), acc_np)
+    np.save(os.path.join('saved_experiments/' + args.path_dir, 'loss.npy'), loss_np)
+    np.save(os.path.join('saved_experiments/' + args.path_dir, 'acc.npy'), acc_np)
 
     plt.plot(np.arange(len(loss_np)), loss_np)
-    plt.savefig(os.path.join('saved_plots/' + args.path_dir, 'loss_plot.png'))
+    plt.savefig(os.path.join('saved_experiments/' + args.path_dir, 'loss_plot.png'))
     plt.clf()
     plt.plot(np.arange(len(acc_np)), acc_np)
-    plt.savefig(os.path.join('saved_plots/' + args.path_dir, 'knn_acc_plot.png'))
+    plt.savefig(os.path.join('saved_experiments/' + args.path_dir, 'knn_acc_plot.png'))
 
     return main_branch.encoder, file_to_update
 
