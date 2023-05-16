@@ -22,7 +22,7 @@ from tqdm import tqdm
 import os
 import copy
 
-from .resnet import resnet18
+from resnets import resnet18
 
 class RestrictedClassDataset(torchvision.datasets.VisionDataset):
     def __init__(self, dataset, classes=None, class_map=None):
