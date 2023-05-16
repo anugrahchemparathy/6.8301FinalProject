@@ -14,6 +14,7 @@ import math
 import time
 import copy
 import argparse
+import pickle
 
 import matplotlib.pyplot as plt
 
@@ -76,8 +77,8 @@ def SSL_loop(args, encoder = None):
     projector = main_branch.projector
     torch.save(dict(epoch=0, state_dict=main_branch.state_dict()), os.path.join('saved_experiments/' + args.path_dir, '0.pth'))
 
-    metric_engine = metrics.MetricEngine(test_loader=test_loader, model=main_branch, device=device)
-
+    metrics_engine = metrics.MetricEngine(test_loader=test_loader, 
+                                         model=main_branch, device=device)
 
     loss_inst = losses.SupConLoss(device, temperature = args.temperature, base_temperature = args.temperature)
 
@@ -85,7 +86,7 @@ def SSL_loop(args, encoder = None):
     scaler = GradScaler()
     
     loss_list = []
-    acc_list = []
+    metrics_dict = {'knn_acc': []}
 
     start = time.time()
     for e in range(1, args.epochs + 1):
@@ -132,7 +133,6 @@ def SSL_loop(args, encoder = None):
                 optimizer.step()
 
         loss_list.append(loss.item())
-        metrics = metric_engine.get_metrics()
 
         if args.fp16:
             with autocast():
@@ -140,7 +140,16 @@ def SSL_loop(args, encoder = None):
         else:
             knn_acc = utils.knn_loop(backbone, memory_loader, test_loader, device)
 
-        acc_list.append(knn_acc)
+        metrics_dict['knn_acc'].append(knn_acc)
+
+        # other metrics
+        new_metrics = metrics_engine.get_metrics() # dict with other metrics
+
+        for k,v in new_metrics.items():
+            if k not in metrics_dict:
+                metrics_dict[k] = []
+            metrics_dict[k].append(v)
+
 
         line_to_print = (
             f'epoch: {e} | knn_acc: {knn_acc:.3f} | '
@@ -157,15 +166,30 @@ def SSL_loop(args, encoder = None):
                        os.path.join('saved_experiments/' + args.path_dir, f'{e}.pth'))
 
     loss_np = np.array(loss_list)
-    acc_np = np.array(acc_list)
+    # acc_np = np.array(metrics_dict['knn_acc'])
     np.save(os.path.join('saved_experiments/' + args.path_dir, 'loss.npy'), loss_np)
-    np.save(os.path.join('saved_experiments/' + args.path_dir, 'acc.npy'), acc_np)
+
+    with open(os.path.join('saved_experiments/' + args.path_dir, 'metrics.pickle'),'wb') as file:
+        pickle.dump(metrics_dict, file)
+        file.close()
+
+    legend = []
+    for k, v in metrics_dict:
+        plt.plot(range(len(v)), v)
+        legend.append(k)
+    
+    plt.xlabel('Epochs')
+    plt.legend(legend)
+    plt.savefig(os.path.join('saved_experiments/' + args.path_dir, 'metric_plot.png'))
+    plt.clf()
 
     plt.plot(np.arange(len(loss_np)), loss_np)
+    plt.ylabel('Loss')
+    plt.xlabel('Epochs')
     plt.savefig(os.path.join('saved_experiments/' + args.path_dir, 'loss_plot.png'))
-    plt.clf()
-    plt.plot(np.arange(len(acc_np)), acc_np)
-    plt.savefig(os.path.join('saved_experiments/' + args.path_dir, 'knn_acc_plot.png'))
+    
+    # plt.plot(np.arange(len(acc_np)), acc_np)
+    # plt.savefig(os.path.join('saved_experiments/' + args.path_dir, 'knn_acc_plot.png'))
 
     return main_branch.encoder, file_to_update
 

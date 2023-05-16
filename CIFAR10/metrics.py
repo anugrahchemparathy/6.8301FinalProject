@@ -8,6 +8,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import utils
+
 from pseudoR2 import *
 
 
@@ -45,8 +47,6 @@ class MetricEngine:
         X = embeddings.detach().cpu().numpy() # (dataset_size, output_dim)
         y = labels.detach().cpu().numpy() # (dataset_size,)
 
-
-
         if self.use_r2:
             self.lr.fit(X, y)
             lr_coef = np.array(self.lr.coef_).transpose()
@@ -64,6 +64,5 @@ class MetricEngine:
             num_components = np.sum(cumulative_explained_variance_ratio < self.variance_threshold) + 1
 
             metrics['pca_dimensionality'] = num_components
-
 
         return metrics
