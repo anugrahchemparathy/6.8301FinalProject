@@ -171,7 +171,7 @@ def main_plot(args):
     dataset_obj = torchvision.datasets.CIFAR10 if not args.cifar100 else torchvision.datasets.CIFAR100
     # print(args.classes)
     test_loader = torch.utils.data.DataLoader(
-        dataset=dataset_class_mapper(torchvision.datasets.CIFAR100(
+        dataset=dataset_class_mapper(dataset_obj(
             '../data', train=not args.test, transform=single_transform, download=True,
         ), args.classes),
         shuffle=False,
@@ -263,7 +263,7 @@ def main_plot(args):
 
     def cmap_one():
         plot = VisPlot(3)
-        plot.add_with_cmap(embeds, vals, cmap="tab10", cby="targets", size=1.5, outline=False)
+        plot.add_with_cmap(embeds, vals, cmap="tab10", cby="targets", size=3, outline=False)
         #plot.add_with_cmap(class_embeds, class_vals, cmap="tab10", cby="targets", size=3, outline=True)
 
         return plot
@@ -286,10 +286,11 @@ if __name__ == '__main__':
     parser.add_argument('--dim_proj', default="2048,3", type=str)
     parser.add_argument('--loss', default="simclr", type=str)
     parser.add_argument('--classes', default=None, type=str)
-    parser.add_argument('--normalize', action='store_true')
+    parser.add_argument('--normalize', action='store_true', default=True)
     parser.add_argument('--cifar100', action='store_true')
 
     args = parser.parse_args()
     if args.classes != None:
         args.classes = args.classes.split(",") # comma-sep
+    print(args.cifar100)
     main_plot(args)
