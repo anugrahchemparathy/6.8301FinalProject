@@ -79,7 +79,8 @@ def SSL_loop(args, encoder = None):
     torch.save(dict(epoch=0, state_dict=main_branch.state_dict()), os.path.join('saved_experiments/' + args.path_dir, '0.pth'))
 
     metrics_engine = metrics.MetricEngine(test_loader=test_loader, 
-                                         model=main_branch, device=device)
+                                         model=main_branch, device=device,
+                                         use_r2=args.r2)
 
     loss_inst = losses.SupConLoss(device, temperature = args.temperature, base_temperature = args.temperature)
 
@@ -233,6 +234,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', default=8, type=int)
     parser.add_argument('--fp16', action='store_true')
     parser.add_argument('--augment', action='store_false')
+    parser.add_argument('--r2', action='store_false')
     parser.add_argument('--temperature', default=0.5, type=float)
 
     parser.add_argument('--threshold', default = 0.0, type = float) # default unsupervised
