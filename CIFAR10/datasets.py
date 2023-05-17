@@ -97,6 +97,13 @@ class ContrastiveLearningTransform:
         out = [single_transform(self.transform(x)), single_transform(self.transform(x))]
         return out
 
+class SingleTransform:
+    def __init__(self):
+        pass
+
+    def __call__(self, x):
+        out = [single_transform(x), single_transform(x)]
+        return out
 
 def rotate_images(images):
     nimages = images.shape[0]
