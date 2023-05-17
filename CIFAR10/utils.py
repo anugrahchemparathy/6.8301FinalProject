@@ -32,7 +32,7 @@ def knn_loop(encoder, train_loader, test_loader, device):
     accuracy = knn_monitor(net=encoder,
                            memory_data_loader=train_loader,
                            test_data_loader=test_loader,
-                           k=200 if device != torch.device('mps') else 16, # mps needs a small k
+                           k=200, # mps needs a small k
                            device=device,
                            hide_progress=True)
     return accuracy
@@ -92,4 +92,3 @@ def knn_predict(feature, feature_bank, feature_labels, classes, knn_k, knn_t):
 
     pred_labels = pred_scores.argsort(dim=-1, descending=True)
     return pred_labels
-
