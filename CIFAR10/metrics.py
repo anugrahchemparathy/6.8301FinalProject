@@ -32,7 +32,8 @@ class MetricEngine:
         labels_list = []
         for batch_idx, (data, labels) in enumerate(self.test_loader):
             data, labels_batch = data.to(self.device), labels.to(self.device)
-            embeddings_batch = self.model(data)
+            with torch.no_grad():
+                embeddings_batch = self.model(data)
 
             embeddings.append(embeddings_batch)
             labels_list.append(labels_batch)
